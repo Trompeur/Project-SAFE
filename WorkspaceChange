@@ -1,1 +1,79 @@
+local Safe = {}
+Restoring = false
 
+for i,v in pairs(workspace:children()) do
+	if v.Name ~= 'Terrain' and v.Name ~= 'Camera' then
+		table.insert(Safe, v:Clone())
+	end
+end
+
+local ThirdParty = Instance.new("BoolValue")
+ThirdParty.Value = workspace.AllowThirdPartySales
+
+local Archivable = Instance.new("BoolValue")
+Archivable.Value = workspace.Archivable
+
+local Filtering = Instance.new("BoolValue")
+Filtering.Value = workspace.FilteringEnabled
+
+local Gravity = Instance.new("NumberValue")
+Gravity.Value = workspace.Gravity
+
+local Streaming = Instance.new("BoolValue")
+Streaming.Value = workspace.StreamingEnabled
+
+wait(.5) 
+
+Detection = function()
+	workspace.Changed:connect(function()
+		wait()
+		workspace.AllowThirdPartySales = ThirdParty.Value
+		workspace.Archivable = Archivable.Value
+		workspace.FilteringEnabled = Filtering.Value
+		workspace.Gravity = Gravity.Value
+		workspace.StreamingEnabled = Streaming.Value
+	end)
+	
+	workspace.DescendantAdded:connect(function(x)
+		if Restoring == false then
+			if Restoring == false and not game.Players:FindFirstChild(x.Name) and x.className ~= "Hint" then
+				x.Name = "DESTROY"
+				wait()
+				x:Destroy()
+			end
+		end
+	end)
+	
+	workspace.DescendantRemoving:connect(function(x)
+		if Restoring == false then
+			if x.Name ~= 'DESTROY' and not game.Players:FindFirstChild(x.Name) and not game.Players:FindFirstChild(x.Parent.Name) and x.className ~= "Hint" and Restoring == false then
+				if x.Name == 'DESTROY' then else
+					wait()
+					RestoreMap()
+				end
+			end
+		end
+	end)
+end
+
+RestoreMap = function()
+	Restoring = true
+	ypcall(function() workspace:ClearAllChildren() end)
+	local x = Instance.new("Hint",workspace)
+	x.Text = 'Something Deleted! | Restoring Map.. Server May Lag Momentarily'
+	wait()
+	for i,v in pairs(Safe) do
+		v:Clone().Parent = workspace
+		wait(.1)
+	end
+	for i,v in pairs(game.Players:children()) do
+		v:LoadCharacter()
+		wait()
+	end
+	x:Destroy()
+	wait(1)
+	Detection()
+	Restoring = false
+end
+
+Detection()
